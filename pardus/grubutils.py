@@ -14,6 +14,7 @@
 
 import os.path
 
+
 class grubCommand:
     """Grub menu command"""
 
@@ -28,6 +29,7 @@ class grubCommand:
         else:
             return "%s %s" % (self.key, self.value)
 
+
 class grubEntry:
     """Grub menu entry"""
 
@@ -37,7 +39,7 @@ class grubEntry:
 
     def listCommands(self):
         """Returns list of commands used in entry"""
-        return map(lambda x: x.key, self.commands)
+        return [x.key for x in self.commands]
 
     def setCommand(self, key, value, opts=[], append=False):
         """Adds a new command to entry. Optional append argument allows addition of multiple commands like 'map'."""
@@ -47,7 +49,7 @@ class grubEntry:
 
     def getCommand(self, key, only_last=True):
         """Returns command object. If only_last is False, returns a list of commands named 'key'."""
-        commands = filter(lambda x: x.key == key, self.commands)
+        commands = [x for x in self.commands if x.key == key]
         if only_last:
             try:
                 return commands[-1]
@@ -57,7 +59,7 @@ class grubEntry:
 
     def unsetCommand(self, key):
         """Removes 'key' from commands."""
-        self.commands = filter(lambda x: x.key != key, self.commands)
+        self.commands = [x for x in self.commands if x.key != key]
 
     def __str__(self):
         conf = []
@@ -66,6 +68,9 @@ class grubEntry:
             conf.append(str(command))
         return "\n".join(conf)
 
+
+# WARNING: grubConf sınıfı eski grub  için hazırlanmış. Kullanılacaksa yeni gruba
+# entegre edilmeli
 class grubConf:
     """Grub configuration class."""
 
@@ -81,7 +86,7 @@ class grubConf:
 
     def __parseLine(self, line):
         """Parses single grub.conf line and returns a tupple of key, value and options."""
-        line = line.replace("\t"," ")
+        line = line.replace("\t", " ")
         line = line.strip()
         try:
             key, data = line.split(" ", 1)
@@ -113,7 +118,7 @@ class grubConf:
         option = True
         entry = None
 
-        for line in file(filename):
+        for line in open(filename):
             if not line.strip() or line.startswith("#"):
                 continue
             key, value, opts = self.__parseLine(line)
@@ -138,7 +143,7 @@ class grubConf:
         default = os.path.join(os.path.dirname(filename), "default")
         if os.path.exists(default):
             try:
-                self.index = int(file(default).read().split("\0")[0])
+                self.index = int(open(default).read().split("\0")[0])
             except ValueError:
                 self.index = 0
 
@@ -153,7 +158,7 @@ class grubConf:
                 conf.append("# %s" % h)
             conf.append("")
         if self.options:
-            for key, value in self.options.iteritems():
+            for key, value in self.options.items():
                 line = "%s %s" % (key, value)
                 conf.append(line)
             conf.append("")
@@ -166,11 +171,11 @@ class grubConf:
 
     def write(self, filename):
         """Writes grub configuration to file."""
-        file(filename, "w").write(str(self))
+        open(filename, "w").write(str(self))
 
     def listOptions(self):
         """Returns list of options."""
-        return self.options.keys()
+        return list(self.options.keys())
 
     def setOption(self, key, value):
         """Sets an option."""
@@ -186,11 +191,11 @@ class grubConf:
 
     def getAllOptions(self):
         """Returns all options."""
-        return ["%s %s" % (key, value) for key, value in self.options.items()]
+        return ["%s %s" % (key, value) for key, value in list(self.options.items())]
 
     def listEntries(self):
         """Returns a list of entries."""
-        return map(lambda x: x.title, self.entries)
+        return [x.title for x in self.entries]
 
     def addEntry(self, entry, index=-1):
         """Adds an entry object."""

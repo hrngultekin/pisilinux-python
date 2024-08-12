@@ -7,6 +7,7 @@
 ** option) any later version. Please read the COPYING file.
 */
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
@@ -18,92 +19,108 @@
 static PyObject *
 csapi_atoi(PyObject *self, PyObject *args)
 {
-	char *str;
-	int i;
+    char *str;
+    int i;
 
-	if (!PyArg_ParseTuple(args, "s", &str))
-		return NULL;
+    if (!PyArg_ParseTuple(args, "s", &str))
+        return NULL;
 
-	i = atoi(str);
-	return Py_BuildValue("i", i);
+    i = atoi(str);
+    return Py_BuildValue("i", i);
 }
 
 static PyObject *
 csapi_settimeofday(PyObject *self, PyObject *args)
 {
-	struct timeval tv;
-	double t;
+    struct timeval tv;
+    double t;
 
-	if (!PyArg_ParseTuple(args, "d", &t))
-		return NULL;
+    if (!PyArg_ParseTuple(args, "d", &t))
+        return NULL;
 
-	tv.tv_sec = t;
-	tv.tv_usec = 0;
-	if (0 != settimeofday(&tv, NULL))
-		return NULL;
+    tv.tv_sec = t;
+    tv.tv_usec = 0;
+    if (0 != settimeofday(&tv, NULL))
+        return NULL;
 
-	Py_INCREF(Py_None);
-	return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static PyObject *
 csapi_changeroute(PyObject *self, PyObject *args)
 {
-	struct rtentry route;
-	struct sockaddr_in gw, dst, mask;
+    struct rtentry route;
+    struct sockaddr_in gw, dst, mask;
 
-	int skfd, func;
-	char *gw_ip, *dst_ip, *mask_ip;
+    int skfd, func;
+    char *gw_ip, *dst_ip, *mask_ip;
 
-	if (!PyArg_ParseTuple(args, "isss", &func, &gw_ip, &dst_ip, &mask_ip))
-		return NULL;
+    if (!PyArg_ParseTuple(args, "isss", &func, &gw_ip, &dst_ip, &mask_ip))
+        return NULL;
 
-	skfd = socket(AF_INET, SOCK_DGRAM, 0);
+    skfd = socket(AF_INET, SOCK_DGRAM, 0);
 
-	if (skfd < 0)
-		return NULL;
+    if (skfd < 0)
+        return NULL;
 
-	memset(&gw, 0, sizeof(struct sockaddr));
-	memset(&dst, 0, sizeof(struct sockaddr));
-	memset(&mask, 0, sizeof(struct sockaddr));
+    memset(&gw, 0, sizeof(struct sockaddr));
+    memset(&dst, 0, sizeof(struct sockaddr));
+    memset(&mask, 0, sizeof(struct sockaddr));
 
-	gw.sin_family = AF_INET;
-	dst.sin_family = AF_INET;
-	mask.sin_family = AF_INET;
+    gw.sin_family = AF_INET;
+    dst.sin_family = AF_INET;
+    mask.sin_family = AF_INET;
 
-	gw.sin_addr.s_addr = inet_addr(gw_ip);
-	dst.sin_addr.s_addr = inet_addr(dst_ip);
-	mask.sin_addr.s_addr = inet_addr(mask_ip);
+    gw.sin_addr.s_addr = inet_addr(gw_ip);
+    dst.sin_addr.s_addr = inet_addr(dst_ip);
+    mask.sin_addr.s_addr = inet_addr(mask_ip);
 
-	memset(&route, 0, sizeof(struct rtentry));
-	route.rt_dst = *(struct sockaddr *)&dst;
-	route.rt_gateway = *(struct sockaddr *)&gw;
-	route.rt_genmask = *(struct sockaddr *)&mask;
-	route.rt_flags = RTF_UP | RTF_GATEWAY;
+    memset(&route, 0, sizeof(struct rtentry));
+    route.rt_dst = *(struct sockaddr *)&dst;
+    route.rt_gateway = *(struct sockaddr *)&gw;
+    route.rt_genmask = *(struct sockaddr *)&mask;
+    route.rt_flags = RTF_UP | RTF_GATEWAY;
 
-	if(ioctl(skfd, func, &route) < 0) {
-	    return NULL;
-	}
+    if(ioctl(skfd, func, &route) < 0) {
+        return NULL;
+    }
 
-	close(skfd);
+    close(skfd);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 
 static PyMethodDef methods[] = {
-	{ "atoi", csapi_atoi, METH_VARARGS,
-		"Convert a string into an integer." },
-	{ "settimeofday", csapi_settimeofday, METH_VARARGS,
-		"Set system date." },
-	{ "changeroute", csapi_changeroute, METH_VARARGS,
-		"Change the route table."},
-	{ NULL, NULL, 0, NULL }
+    { "atoi", csapi_atoi, METH_VARARGS,
+        "Convert a string into an integer." },
+    { "settimeofday", csapi_settimeofday, METH_VARARGS,
+        "Set system date." },
+    { "changeroute", csapi_changeroute, METH_VARARGS,
+        "Change the route table."},
+    { NULL, NULL, 0, NULL }
+};
+
+
+static struct PyModuleDef csapi_module = {
+    PyModuleDef_HEAD_INIT,
+    "csapi",   /* name of module */
+    "pardus csapi module", /* module doc*/
+    -1,
+    methods
 };
 
 PyMODINIT_FUNC
-initcsapi(void)
+PyInit_csapi(void)
 {
-	Py_InitModule("csapi", methods);
+    PyObject *m;
+
+    m = PyModule_Create(&csapi_module);
+
+    if (m == NULL)
+        return NULL;
+
+    return m;
 }

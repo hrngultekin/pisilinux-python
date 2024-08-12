@@ -60,14 +60,16 @@ class IF:
         self.name = ifname
         self._sock = None
         self.timeout = "120"
-        self.dhcpcd_version = os.popen("/sbin/dhcpcd --version").read().split()[1]
+        # self.dhcpcd_version = os.popen("/sbin/dhcpcd --version").read().split()[1]
+        self.dhcpcd_version = os.popen("/usr/bin/dhcpcd --version").read().split()[1]
 
         # -R -Y -N to prevent dhcpcd rewrite nameservers (dhcpcd 3.x)
         # -t for timeout  (dhcpcd 3.x, 5.x)
         # -I for clientID (dhcpcd 3.x, 5.x)
 
         # Check dhcpcd version and generate option list according to it
-        self.autoCmd = ["/sbin/dhcpcd"]
+        # self.autoCmd = ["/sbin/dhcpcd"]
+        self.autoCmd = ["/usr/bin/dhcpcd"]
         if self.dhcpcd_version < "3.9.9":
             self.autoCmd.extend(["-R", "-Y", "-N"])
         elif self.dhcpcd_version.startswith("5."):
@@ -81,7 +83,7 @@ class IF:
             self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         return fcntl.ioctl(self._sock.fileno(), func, args)
 
-    def _call(self, func, ip = None):
+    def _call(self, func, ip=None):
         if ip:
             ifreq = (self.name + '\0' * 16)[:16]
             data = struct.pack("16si4s10x", ifreq, socket.AF_INET, socket.inet_aton(ip))
@@ -96,7 +98,7 @@ class IF:
     def sysValue(self, name):
         path = os.path.join("/sys/class/net", self.name, name)
         if os.path.exists(path):
-            return file(path).read().rstrip("\n")
+            return open(path).read().rstrip("\n")
         else:
             return None
 
@@ -124,7 +126,7 @@ class IF:
                     try:
                         vendor = remHex(self.sysValue(path2 + "/idVendor"))
                         device = remHex(self.sysValue(path2 + "/idProduct"))
-                    except:
+                    except Exception:
                         product = "0/0/0"
                         for line in self.sysValue("device/uevent").split("\n"):
                             if line.startswith("PRODUCT="):
@@ -152,7 +154,7 @@ class IF:
         return nettype == ARPHRD_PPP
 
     def isWireless(self):
-        data = file("/proc/net/wireless").readlines()
+        data = open("/proc/net/wireless").readlines()
         for line in data[2:]:
             name = line[:line.find(": ")].strip()
             if name == self.name:
@@ -253,14 +255,14 @@ class IF:
     def stopAuto(self):
         # dhcpcd does not create a pid file until it gets 
         # an ip address so dhcpcd -k does not work while cancelling
-        if subprocess.call(["/sbin/dhcpcd", "-k", self.name], stderr=file("/dev/null")):
+        if subprocess.call(["/usr/bin/dhcpcd", "-k", self.name], stderr=open("/dev/null")):
             subprocess.call(["pkill","-f","%s" % " ".join(self.autoCmd)])
 
     def isAuto(self):
         path = "/var/run/dhcpcd-%s.pid" % self.name
         if not os.path.exists(path):
             return False
-        pid = file(path).read().rstrip("\n")
+        pid = open(path).read().rstrip("\n")
         if not os.path.exists("/proc/%s" % pid):
             return False
         return True
@@ -276,7 +278,7 @@ class IF:
 
         info_file = self.autoInfoFile()
         try:
-            f = file(info_file)
+            f = open(info_file)
         except IOError:
             return None
 

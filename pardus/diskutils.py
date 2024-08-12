@@ -17,6 +17,7 @@ import struct
 import binascii
 import subprocess
 
+
 class EDD:
     def __init__(self):
         self.edd_dir = "/sys/firmware/edd"
@@ -40,14 +41,14 @@ class EDD:
     def get_edd_sig(self, _n):
         sigfile = "%s/int13_dev%s/mbr_signature" % (self.edd_dir, _n)
         if os.path.exists(sigfile):
-            sig = file(sigfile).read().strip("\n")
+            sig = open(sigfile).read().strip("\n")
         else:
             sig = None
 
         return sig
 
     def get_mbr_sig(self, _f):
-        f = file(_f)
+        f = open(_f)
         f.seek(self.edd_offset)
         a = f.read(self.edd_len)
         f.close()
@@ -64,7 +65,7 @@ class EDD:
                 if sig:
                     sigs[bios_num] = sig
         else:
-            print "please insert edd module"
+            print("please insert edd module")
         return sigs
 
     def list_mbr_signatures(self):
@@ -75,6 +76,7 @@ class EDD:
             except IOError:
                 pass
         return sigs
+
 
 def getDeviceMap():
     """
@@ -93,7 +95,7 @@ def getDeviceMap():
     edd_list = edd.list_edd_signatures()
 
     # sort keys
-    edd_keys = edd_list.keys()
+    edd_keys = list(edd_list.keys())
     edd_keys.sort()
 
     devices = []
@@ -107,6 +109,7 @@ def getDeviceMap():
             i += 1
 
     return devices
+
 
 def parseLinuxDevice(device):
     """
@@ -130,6 +133,7 @@ def parseLinuxDevice(device):
                     grub_part = int(part) - 1
                 return linux_disk, part, grub_disk, grub_part
     return None
+
 
 def parseGrubDevice(device):
     """
@@ -159,6 +163,7 @@ def parseGrubDevice(device):
             return grub_disk, part, linux_disk, linux_part
     return None
 
+
 def grubAddress(device):
     """
         Translates Linux device address to GRUB address.
@@ -174,6 +179,7 @@ def grubAddress(device):
     except (ValueError, TypeError):
         return None
     return "(%s,%s)" % (grub_disk, grub_part)
+
 
 def linuxAddress(device):
     """
@@ -191,6 +197,7 @@ def linuxAddress(device):
         return None
     return "%s%s" % (linux_disk, linux_part)
 
+
 def getDeviceByLabel(label):
     """
         Find Linux device address from it's label.
@@ -207,6 +214,7 @@ def getDeviceByLabel(label):
     else:
         return None
 
+
 def getDeviceByUUID(uuid):
     """
         Find Linux device address from it's UUID.
@@ -222,6 +230,7 @@ def getDeviceByUUID(uuid):
         return "/dev/%s" % os.readlink(fn)[6:]
     else:
         return None
+
 
 def getDevice(path):
     """
@@ -241,6 +250,7 @@ def getDevice(path):
                 return getDeviceByLabel(mount_items[0].split('=', 1)[1])
             elif mount_items[0].startswith("UUID="):
                 return getDeviceByUUID(mount_items[0].split('=', 1)[1])
+
 
 def getPartitions():
     """
@@ -262,7 +272,7 @@ def getPartitions():
     try:
         for line in cmd.readlines():
             partition = line.split(':')[0]
-            if not result.has_key(partition):
+            if partition not in result:
                 result[partition] = {}
                 for info in line.split():
                     if info.startswith('LABEL='):
@@ -271,10 +281,11 @@ def getPartitions():
                         result[partition]['uuid'] = info[5:].strip('"')
                     if info.startswith('TYPE='):
                         result[partition]['fstype'] = info[5:].strip('"')
-    except:
+    except Exception:
         return None
     else:
         return result
+
 
 def getRoot():
     """
@@ -284,6 +295,7 @@ def getRoot():
             Device address (e.g. "/dev/sda1")
     """
     return getDevice("/")
+
 
 def getBoot():
     """

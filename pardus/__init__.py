@@ -10,7 +10,8 @@
 # Please read the COPYING file.
 #
 
-__version__ = "0.4.8"
+__version__ = "0.5.0"
+
 
 __all__ = ["csapi",
            "deviceutils",
@@ -30,4 +31,3 @@ __all__ = ["csapi",
 
 def versionString():
     return __version__
-

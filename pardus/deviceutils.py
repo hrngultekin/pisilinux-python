@@ -16,15 +16,17 @@ import os
 
 sysfs_path = "/sys"
 
+
 def sysValue(*paths):
     path = os.path.join(sysfs_path, *paths)
-    f = file(path)
+    f = open(path)
     data = f.read().rstrip("\n")
     f.close()
     return data
 
+
 def idsQuery(name, vendor, device):
-    f = file(name)
+    f = open(name)
     flag = 0
     company = ""
     for line in f.readlines():

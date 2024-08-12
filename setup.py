@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #-*- coding: utf-8 -*-
 
 import os
@@ -6,7 +6,8 @@ import os.path
 import sys
 import glob
 import shutil
-from distutils.core import setup, Extension
+# from distutils.core import setup, Extension
+from setuptools import setup, Extension
 from distutils.command.install import install
 
 import pardus
@@ -24,6 +25,7 @@ distfiles = """
     MODULES
     README
 """
+
 
 def make_dist():
     distdir = "pardus-python-%s" % pardus.versionString()
@@ -44,9 +46,11 @@ def make_dist():
     os.popen("tar -czf %s %s" % ("pardus-python-" + pardus.versionString() + ".tar.gz", distdir))
     shutil.rmtree(distdir)
 
+
 if "dist" in sys.argv:
     make_dist()
     sys.exit(0)
+
 
 class Install(install):
     def finalize_options(self):
@@ -65,7 +69,7 @@ class Install(install):
             if not name.endswith('.po'):
                 continue
             lang = name[:-3]
-            print "Installing '%s' translations..." % lang
+            print("Installing '%s' translations..." % lang)
             os.popen("msgfmt po/%s.po -o po/%s.mo" % (lang, lang))
             if not self.root:
                 self.root = "/"
@@ -74,20 +78,24 @@ class Install(install):
                 os.makedirs(destpath)
             shutil.copy("po/%s.mo" % lang, os.path.join(destpath, "pardus-python.mo"))
 
-setup(name="pardus",
-      version=pardus.versionString(),
-      description="Python Modules for Pardus",
-      long_description="Python Modules for Pardus.",
-      license="GNU GPL2",
-      author="Pardus Developers",
-      author_email="info@pardus.org.tr",
-      url="http://www.pardus.org.tr/",
-      packages = ['pardus', 'pardus.xorg'],
-      ext_modules = [Extension('pardus.xorg.capslock',
-                               sources=['pardus/xorg/capslock.c'],
-                               libraries=['X11']),
-                     Extension('pardus.csapi',
-                               sources=['pardus/csapi.c'],
-                               libraries=[]),
-                    ],
-      cmdclass = {'install' : Install})
+
+setup(
+    name="pardus",
+    version=pardus.versionString(),
+    description="Python Modules for Pardus",
+    long_description="Python Modules for Pardus.",
+    license="GNU GPL2",
+    author="Pardus Developers",
+    author_email="info@pardus.org.tr",
+    url="http://www.pardus.org.tr/",
+    packages=['pardus', 'pardus.xorg'],
+    ext_modules=[
+        Extension('pardus.xorg.capslock',
+                  sources=['pardus/xorg/capslock.c'],
+                  libraries=['X11']),
+        Extension('pardus.csapi',
+                  sources=['pardus/csapi.c'],
+                  libraries=[]),
+                ],
+    cmdclass={'install': Install}
+)

@@ -14,6 +14,7 @@
 
 import os
 
+
 def find_executable(exec_name):
     """find the given executable in PATH"""
 
@@ -29,6 +30,7 @@ def find_executable(exec_name):
             return exec_path
 
     return None
+
 
 def get_kernel_option(option):
     """Get a dictionary of args for the given kernel command line option"""

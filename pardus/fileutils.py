@@ -29,9 +29,9 @@ class FileLock:
         if timeout != -1:
             _type |= fcntl.LOCK_NB
 
-        self.fd = os.open(self.filename, os.O_WRONLY | os.O_CREAT, 0600)
+        self.fd = os.open(self.filename, os.O_WRONLY | os.O_CREAT, 0o600)
         if self.fd == -1:
-            raise IOError, "Cannot create lock file"
+            raise IOError("Cannot create lock file")
 
         while True:
             try:

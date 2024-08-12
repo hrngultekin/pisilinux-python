@@ -7,6 +7,7 @@
 * option) any later version. Please read the COPYING file.
 */
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <X11/Xlib.h>
 
@@ -43,17 +44,22 @@ capslock_isOn(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef capslock_methods[] = {
-    {"isOn",  (PyCFunction)capslock_isOn,  METH_NOARGS,  isOn__doc__},
-    {NULL, NULL}
+    // {"isOn",  (PyCFunction)capslock_isOn,  METH_NOARGS,  isOn__doc__},
+    {"isOn",  capslock_isOn,  METH_NOARGS,  isOn__doc__},
+    {NULL, NULL, 0, NULL}
+};
+
+static struct PyModuleDef capslock_module = {
+    PyModuleDef_HEAD_INIT,
+    "capslock",   /* name of module */
+    "pardus capslock module", /* module doc*/
+    -1,
+    capslock_methods
 };
 
 PyMODINIT_FUNC
-initcapslock(void)
+PyInit_capslock(void)
 {
-    PyObject *m;
-
-    m = Py_InitModule("capslock", capslock_methods);
-
-    return;
+    return PyModuleDef_Init(&capslock_module);
 }
 

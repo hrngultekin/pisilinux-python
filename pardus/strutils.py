@@ -14,57 +14,68 @@
 
 import operator
 import string
+from functools import reduce
+
 
 def every(pred, seq):
-    return reduce(operator.and_, map(pred, seq), True)
+    return reduce(operator.and_, list(map(pred, seq)), True)
+
 
 def any(pred, seq):
-    return reduce(operator.or_, map(pred, seq), False)
+    return reduce(operator.or_, list(map(pred, seq)), False)
+
 
 def unzip(seq):
-    return zip(*seq)
+    return list(zip(*seq))
+
 
 def concat(l):
     """Concatenate a list of lists."""
-    return reduce( operator.concat, l )
+    return reduce(operator.concat, l)
+
 
 def strlist(l):
     """Concatenate string reps of l's elements."""
-    return "".join(map(lambda x: str(x) + ' ', l))
+    return "".join([str(x) + ' ' for x in l])
+
 
 def multisplit(str, chars):
     """Split str with any of the chars."""
     l = [str]
     for c in chars:
-        l = concat(map(lambda x:x.split(c), l))
+        l = concat([x.split(c) for x in l])
     return l
+
 
 def same(l):
     """Check if all elements of a sequence are equal."""
-    if len(l)==0:
+    if len(l) == 0:
         return True
     else:
         last = l.pop()
         for x in l:
-            if x!=last:
+            if x != last:
                 return False
         return True
 
+
 def prefix(a, b):
     """Check if sequence a is a prefix of sequence b."""
-    if len(a)>len(b):
+    if len(a) > len(b):
         return False
-    for i in range(0,len(a)):
-        if a[i]!=b[i]:
+    for i in range(0, len(a)):
+        if a[i] != b[i]:
             return False
     return True
 
-def remove_prefix(a,b):
+
+def remove_prefix(a, b):
     """Remove prefix a from sequence b."""
-    assert prefix(a,b)
+    assert prefix(a, b)
     return b[len(a):]
 
-def human_readable_size(size = 0):
+
+def human_readable_size(size=0):
     symbols, depth = [' B', 'KB', 'MB', 'GB'], 0
 
     while size > 1000 and depth < 3:
@@ -73,14 +84,17 @@ def human_readable_size(size = 0):
 
     return size, symbols[depth]
 
-def human_readable_rate(size = 0):
+
+def human_readable_rate(size=0):
     x = human_readable_size(size)
     return x[0], x[1] + '/s'
+
 
 def ascii_lower(str):
     """Ascii only version of string.lower()"""
     trans_table = string.maketrans(string.ascii_uppercase, string.ascii_lowercase)
     return str.translate(trans_table)
+
 
 def ascii_upper(str):
     """Ascii only version of string.upper()"""
